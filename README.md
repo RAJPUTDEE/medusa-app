@@ -1,69 +1,103 @@
-# medusa-app
-Design a medusa backend deployed on ECS Fargate configured with Actions for an Ecommerce application
+# 🚀 Medusa Application Deployment on AWS ECS (Fargate)
 
-This project automates the deployment of the [Medusa](https://github.com/linuxserver/Medusa) backend using:
-- Terraform (IaC)
-- AWS ECS Fargate (serverless containers)
-- PostgreSQL on RDS
-- GitHub Actions (CI/CD)
-- Application Load Balancer for public access
+This project demonstrates Infrastructure as Code (IaC) for deploying the Medusa headless commerce backend using [linuxserver/medusa](https://docs.linuxserver.io/images/docker-medusa/) Docker image on AWS ECS Fargate. The deployment is managed via Terraform, and the CI/CD pipeline is powered by GitHub Actions.
 
 ---
 
-## 📦 Architecture
+## 📦 Tech Stack
 
-[ GitHub ]
-│
-▼
-[ GitHub Actions ]
-│
-▼
-[ Terraform CLI ] ─────────────┐
-▼
-┌────────────────────────┐
-│ AWS Resources │
-└────────────────────────┘
-├── ECS Fargate Cluster
-├── Task with Medusa Container (linuxserver/medusa:1.0.22)
-├── RDS PostgreSQL DB
-├── Application Load Balancer
-└── Security Group (Port 3000 Open)
-
-## 🛠️ Terraform Modules
-
-| Module | Purpose |
-|--------|---------|
-| `vpc/` | Uses default VPC & fetches public subnets |
-| `iam/` | ECS task execution role |
-| `rds/` | Creates PostgreSQL database |
-| `ecs/` | ECS cluster, task def, service, ALB |
-| `.github/workflows/deploy.yml` | GitHub Actions CI/CD |
+- **Terraform** (IaC)
+- **AWS ECS with Fargate** (Container Orchestration)
+- **Application Load Balancer (ALB)** (Traffic routing)
+- **AWS IAM** (Execution role)
+- **GitHub Actions** (CI/CD automation)
 
 ---
 
-## 🔐 Secrets to Set in GitHub
+## 🔧 Project Structure
+.
+├── main.tf # Root Terraform config
+├── terraform.tfvars # Variable values (empty since no DB used)
+├── variables.tf # Input variables
+├── vpc/
+│ └── main.tf # Default VPC & Security Group
+├── iam/
+│ └── main.tf # ECS Task Execution Role & policy
+├── ecs/
+│ └── main.tf # ECS cluster, ALB, Task Definition, Service
+└── .github/
+ └── workflows/
+   └── deploy.yml # GitHub Actions pipeline
 
-In your GitHub repository, add the following under `Settings → Secrets → Actions`:
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
+## ⚙️ Deployment Instructions
 
----
-
-## 🚀 Deployment Steps
-
-1. Push your code to the `main` branch.
-2. GitHub Actions will run:
-   - `terraform init`
-   - `terraform plan`
-   - `terraform apply`
-3. Find the ALB DNS in GitHub Actions output or AWS Console.
-4. Access the Medusa app at `http://<alb-dns>:3000`
+### 🧑‍💻 Prerequisites
+- AWS account with IAM credentials set as GitHub secrets:
+  - `AWS_ACCESS_KEY_ID`
+  - `AWS_SECRET_ACCESS_KEY`
+- Default VPC and public subnets must exist in your region.
+- GitHub repository with code pushed to `main` branch.
 
 
-## ✅ Outputs after `terraform apply`
+### 🚀 Deploy Using GitHub Actions
 
-- `medusa_service_url`: Public URL of the Medusa backend
-- `rds_endpoint`: RDS PostgreSQL connection string
-- `ecs_cluster_name`: Cluster name
-- `ecs_service_name`: ECS service
-- `task_definition_family`: Task definition ID
+1. **Push your code** to the `main` branch.
+2. **GitHub Actions** will:
+   - Initialize Terraform
+   - Create ECS Cluster, ALB, Task Definition, and Service
+
+### 🌐 Accessing Medusa
+
+Once deployed, the application will be available at:
+
+http://<ALB-DNS-Name>:8081
+You can get the ALB DNS from AWS Console or Terraform output.
+
+🐳 About the Docker Image
+The deployment uses the image:
+📦 lscr.io/linuxserver/medusa:latest
+
+Container Configuration:
+
+Port: 8081
+
+Volumes (ephemeral):
+
+/config, /downloads, /tv
+
+Environment Variables:
+
+PUID=1000
+
+PGID=1000
+
+TZ=Etc/UTC
+
+
+📄 Terraform Outputs
+After successful deployment, Terraform will output:
+
+alb_dns: Public URL to access Medusa
+
+ecs_cluster_name: ECS cluster name
+
+ecs_service_name: ECS service name
+
+task_definition_family: Task family used for Medusa container
+
+♻️ Clean Up
+To destroy the infrastructure manually:
+
+terraform destroy -auto-approve
+Or modify the GitHub Actions workflow to use destroy step if needed.
+
+🙋 Author
+👤 Rajput Deepak Singh
+
+✉️ Feel free to reach out at: singh.deepak839@gmail.com
+
+📌 Notes
+RDS integration was skipped in favor of a simpler SQLite fallback due to AWS cost.
+
+Ensure your ALB Security Group allows port 8081 inbound from 0.0.0.0/0.
+
