@@ -1,7 +1,7 @@
 resource "aws_db_instance" "medusa_db" {
   allocated_storage    = 10
   engine               = "postgres"
-  engine_version       = "13.7"
+  engine_version       = "14.12"
   instance_class       = "db.t3.micro"
   db_name              = "medusadb"
   username             = "medusaadmin"
