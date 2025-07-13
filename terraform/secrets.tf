@@ -1,5 +1,5 @@
 resource "aws_secretsmanager_secret" "medusa" {
-  name = "medusa_db_secret"
+  name = "medusa_db_secret-${random_id.suffix.hex}"
 }
 
 resource "aws_secretsmanager_secret_version" "medusa" {
