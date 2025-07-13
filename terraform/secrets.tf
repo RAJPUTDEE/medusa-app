@@ -1,3 +1,7 @@
+resource "random_id" "suffix" {
+  byte_length = 4
+}
+
 resource "aws_secretsmanager_secret" "medusa" {
   name = "medusa_db_secret-${random_id.suffix.hex}"
 }
