@@ -58,6 +58,7 @@ resource "aws_ecs_task_definition" "medusa_task" {
         containerPort = 3000
         hostPort      = 3000
       }],
+      command = ["medusa", "start", "--port", "3000", "--host", "0.0.0.0"],
       environment = [
         {
           name  = "NODE_ENV"
@@ -84,18 +85,10 @@ resource "aws_ecs_task_definition" "medusa_task" {
 
   volume {
     name = "medusa_data"
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.medusa_efs.id
-      transit_encryption      = "ENABLED"
-      root_directory          = "/"
-    }
   }
-}
 
-resource "aws_efs_file_system" "medusa_efs" {
-  creation_token = "medusa-efs"
-  lifecycle_policy {
-    transition_to_ia = "AFTER_30_DAYS"
+  ephemeral_storage {
+    size_in_gib = 21
   }
 }
 
