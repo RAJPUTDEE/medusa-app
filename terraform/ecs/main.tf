@@ -16,14 +16,14 @@ resource "aws_lb" "medusa_alb" {
 
 resource "aws_lb_target_group" "medusa_tg" {
   name     = "medusa-tg"
-  port     = 3000
+  port     = 8081
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.default.id
   target_type = "ip"
   health_check {
     path                = "/"
     protocol            = "HTTP"
-    matcher             = "200"
+    matcher             = "200-399"
     interval            = 30
     timeout             = 5
     healthy_threshold   = 2
@@ -53,30 +53,31 @@ resource "aws_ecs_task_definition" "medusa_task" {
   container_definitions = jsonencode([
     {
       name      = "medusa"
-      image     = "linuxserver/medusa:1.0.22"
+      image     = "lscr.io/linuxserver/medusa:latest"
       portMappings = [{
-        containerPort = 3000
-        hostPort      = 3000
+        containerPort = 8081
+        hostPort      = 8081
+        protocol      = "tcp"
       }],
-      command = ["medusa", "start", "--port", "3000", "--host", "0.0.0.0"],
       environment = [
-        {
-          name  = "NODE_ENV"
-          value = "production"
-        },
-        {
-          name  = "DATABASE_TYPE"
-          value = "sqlite"
-        },
-        {
-          name  = "DATABASE_URL"
-          value = "file:/data/medusa.db"
-        }
+        { name = "PUID", value = "1000" },
+        { name = "PGID", value = "1000" },
+        { name = "TZ",   value = "Etc/UTC" }
       ],
       mountPoints = [
         {
-          sourceVolume  = "medusa_data"
-          containerPath = "/data"
+          sourceVolume  = "medusa_config"
+          containerPath = "/config"
+          readOnly      = false
+        },
+        {
+          sourceVolume  = "medusa_downloads"
+          containerPath = "/downloads"
+          readOnly      = false
+        },
+        {
+          sourceVolume  = "medusa_tv"
+          containerPath = "/tv"
           readOnly      = false
         }
       ]
@@ -84,7 +85,15 @@ resource "aws_ecs_task_definition" "medusa_task" {
   ])
 
   volume {
-    name = "medusa_data"
+    name = "medusa_config"
+  }
+
+  volume {
+    name = "medusa_downloads"
+  }
+
+  volume {
+    name = "medusa_tv"
   }
 
   ephemeral_storage {
@@ -108,7 +117,7 @@ resource "aws_ecs_service" "medusa_service" {
   load_balancer {
     target_group_arn = aws_lb_target_group.medusa_tg.arn
     container_name   = "medusa"
-    container_port   = 3000
+    container_port   = 8081
   }
 }
 
