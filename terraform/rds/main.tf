@@ -3,7 +3,7 @@ resource "aws_db_instance" "medusa_db" {
   engine               = "postgres"
   engine_version       = "14.3"
   instance_class       = "db.t3.micro"
-  name                 = "medusadb"
+  db_name              = "medusadb"
   username             = "medusaadmin"
   password             = var.db_password
   skip_final_snapshot  = true
