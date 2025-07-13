@@ -1,3 +1,7 @@
+data "aws_vpc" "default" {
+  default = true
+}
+
 resource "aws_ecs_cluster" "medusa_cluster" {
   name = "medusa-cluster"
 }
@@ -90,6 +94,18 @@ resource "aws_ecs_service" "medusa_service" {
 
 output "alb_dns" {
   value = aws_lb.medusa_alb.dns_name
+}
+
+output "cluster_name" {
+  value = aws_ecs_cluster.medusa_cluster.name
+}
+
+output "service_name" {
+  value = aws_ecs_service.medusa_service.name
+}
+
+output "task_family" {
+  value = aws_ecs_task_definition.medusa_task.family
 }
 
 variable "db_endpoint" {

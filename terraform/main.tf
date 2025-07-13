@@ -27,13 +27,34 @@ module "db" {
 
 module "ecs" {
   source = "./ecs"
-  db_endpoint     = module.db.db_endpoint
-  db_password     = var.db_password
+  db_endpoint       = module.db.db_endpoint
+  db_password       = var.db_password
   execution_role_arn = module.iam.execution_role_arn
-  subnets         = module.network.subnets
-  security_group  = module.network.security_group
+  subnets           = module.network.subnets
+  security_group    = module.network.security_group
 }
 
-output "service_url" {
-  value = module.ecs.alb_dns
+output "medusa_service_url" {
+  description = "The public DNS name of the ALB serving the Medusa app"
+  value       = module.ecs.alb_dns
+}
+
+output "rds_endpoint" {
+  description = "PostgreSQL RDS database endpoint"
+  value       = module.db.db_endpoint
+}
+
+output "ecs_cluster_name" {
+  description = "Name of the ECS Cluster"
+  value       = module.ecs.cluster_name
+}
+
+output "ecs_service_name" {
+  description = "Name of the ECS Service"
+  value       = module.ecs.service_name
+}
+
+output "task_definition_family" {
+  description = "Family name of the ECS Task Definition"
+  value       = module.ecs.task_family
 }
