@@ -64,12 +64,39 @@ resource "aws_ecs_task_definition" "medusa_task" {
           value = "production"
         },
         {
+          name  = "DATABASE_TYPE"
+          value = "sqlite"
+        },
+        {
           name  = "DATABASE_URL"
-          value = "postgresql://medusaadmin:${var.db_password}@${var.db_endpoint}:5432/medusadb"
+          value = "file:/data/medusa.db"
+        }
+      ],
+      mountPoints = [
+        {
+          sourceVolume  = "medusa_data"
+          containerPath = "/data"
+          readOnly      = false
         }
       ]
     }
   ])
+
+  volume {
+    name = "medusa_data"
+    efs_volume_configuration {
+      file_system_id          = aws_efs_file_system.medusa_efs.id
+      transit_encryption      = "ENABLED"
+      root_directory          = "/"
+    }
+  }
+}
+
+resource "aws_efs_file_system" "medusa_efs" {
+  creation_token = "medusa-efs"
+  lifecycle_policy {
+    transition_to_ia = "AFTER_30_DAYS"
+  }
 }
 
 resource "aws_ecs_service" "medusa_service" {
@@ -106,14 +133,6 @@ output "service_name" {
 
 output "task_family" {
   value = aws_ecs_task_definition.medusa_task.family
-}
-
-variable "db_endpoint" {
-  type = string
-}
-
-variable "db_password" {
-  type = string
 }
 
 variable "execution_role_arn" {

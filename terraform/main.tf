@@ -20,28 +20,16 @@ module "iam" {
   source = "./iam"
 }
 
-module "db" {
-  source = "./rds"
-  db_password = var.db_password
-}
-
 module "ecs" {
   source = "./ecs"
-  db_endpoint       = module.db.db_endpoint
-  db_password       = var.db_password
   execution_role_arn = module.iam.execution_role_arn
-  subnets           = module.network.subnets
-  security_group    = module.network.security_group
+  subnets            = module.network.subnets
+  security_group     = module.network.security_group
 }
 
 output "medusa_service_url" {
   description = "The public DNS name of the ALB serving the Medusa app"
   value       = module.ecs.alb_dns
-}
-
-output "rds_endpoint" {
-  description = "PostgreSQL RDS database endpoint"
-  value       = module.db.db_endpoint
 }
 
 output "ecs_cluster_name" {
